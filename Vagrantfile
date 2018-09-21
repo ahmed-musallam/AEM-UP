@@ -1,23 +1,11 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
-
-
-require 'getoptlong'
-
-opts = GetoptLong.new(
-  [ '--vm-name',        GetoptLong::OPTIONAL_ARGUMENT ],
-  [ '--host-name',      GetoptLong::OPTIONAL_ARGUMENT ],
-  [ '--provider',       GetoptLong::OPTIONAL_ARGUMENT ],
-  [ '--no-provision',   GetoptLong::OPTIONAL_ARGUMENT ],
-)
-
-
 # All Vagrant configuration is done below. The "2" in Vagrant.configure
 # configures the configuration version (we support older styles for
 # backwards compatibility). Please don't change it unless you know what
 # you're doing.
 Vagrant.configure(2) do |config|
-    # Using Fedora for the base image
+    # Using Centos for the base image
     config.vm.box = "centos/7"
 
     # config.ssh.username = "vagrant"
@@ -36,6 +24,7 @@ Vagrant.configure(2) do |config|
     # Disable default rsync folder and setup new one
     config.vm.synced_folder ".", "/vagrant", disabled: true
     config.vm.synced_folder "./aem_install_files", "/home/vagrant/aem_install_files", disabled: false, type: "rsync", create: true
+
     # attempting to sync logs.. not working yet.. :(
     # config.vm.synced_folder "./instances", "/home/vagrant", type: "nfs", disabled: false
 
@@ -46,7 +35,6 @@ Vagrant.configure(2) do |config|
     config.vm.network "forwarded_port", guest: 4602, host: 4602
     config.vm.network "forwarded_port", guest: 4603, host: 4603
     config.vm.network "forwarded_port", guest: 80, host: 4604
-    # config.vm.network "forwarded_port", guest: 45335, host: 45335
 
     # Run ansible playbook
     config.vm.provision "ansible" do |ansible|

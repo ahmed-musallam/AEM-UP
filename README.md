@@ -100,6 +100,10 @@ you can SSH into VM as mentioned above to see logs.
 
 ## Options
 
+### Increase VM memory and CPU cores
+
+in `vagrantfile` change `vb.memory` and `vb.cpu`
+
 ### JVM/AEM parameters
   
   You can set Java and AEM params in `Environment directive` in `/resources/services/aem-author.service` and `/resources/services/aem-publish.service`
