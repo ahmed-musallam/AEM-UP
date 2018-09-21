@@ -54,6 +54,8 @@ AEM Author, Dispatcher and Publisher in one VM managed via `Vagrant` and provisi
 
 4. buy me coffee? JK, just star the repo :)
 
+> NOTE: you will need to setup replication agents and configs as needed. This setup only installs AEM.
+
 
 ## Dispatcher Configuration
 *Dispatcher will be installed with default configs.*
