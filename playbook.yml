@@ -1,0 +1,119 @@
+---
+- hosts: all
+
+  vars:
+    # CONFIGURE THIS:
+    aem_jar_name: "cq-quickstart-6.4.0.jar" # The AEM JAR file name in /aem_install_files
+    dispatcher_module_name: "dispatcher-apache2.4-4.2.3.so"  # The dispatcher module file name in /aem_install_files
+    
+    # Do NOT configure below this line (unless you know what you're doing)
+    # There are other places that use those same configs,
+    # so changing them here will not have the effect you hope for...
+    aem_author_port: 4602
+    aem_publish_port: 4603
+    aem_dispatcher_port: 4604
+    aem_publish_runmodes: publish,samplecontent
+    aem_author_runmodes: author,samplecontent
+  
+  # Handlers
+  handlers:
+    # Restart apache, needed for when we make changes to apache files
+    - name: restart apache
+      service: name=httpd state=restarted
+      become: true
+  # Ansible tasks
+  tasks:
+
+    # CAUTION: ONLY FOR LOCAL DEV BOX, ***DO NOT*** USE THIS FOR PRODUCTION :)
+    # Solves for the issue of "Permission denied" when running dispatcher, even as root.
+    # for adobe's solution, see section "Apache Web Server - Configure SELinux Properties"
+    # of https://helpx.adobe.com/experience-manager/dispatcher/using/dispatcher-install.html
+    # Note: this runs the first time you setup your VM, subsequesnt provesions do not run this task.
+    - name: Disable SELinux
+      selinux: state=disabled
+      become: true
+      register: disable_selinux_result
+    
+    # Reboot ONLY if Disable SELinux task was changed (only first time)
+    - name: Restarting VM (only runs when SELinux task is changed)
+      shell: "sleep 5 && reboot"
+      async: 1
+      poll: 0
+      when: disable_selinux_result is changed
+
+    - name: Install dependencies such as java and httpd (apache)
+      yum: name={{ item }} state=latest
+      become: true
+      with_items: [nano, java, httpd]
+
+    # Some OS's have smaller limit of number of concurrent open files.
+    # AEM opens a lot of files, so we max that limit here
+    - name: Set open file limit for vagrant users
+      pam_limits: domain=vagrant limit_type=hard limit_item=nofile value=64000
+      become: true
+
+    - name: Wait for the reboot to complete if there was a change.
+      wait_for_connection: connect_timeout=20 sleep=5 delay=5 timeout=300
+      when: disable_selinux_result is changed
+
+
+    - name: Unpack AEM JAR to Author and Publish directories
+      command: java -jar {{aem_jar_name}} -unpack -b "../{{item.folder}}" -quickstart.server.port {{aem_publish_port}} -r {{item.runmode}}
+      args:
+        chdir: /home/vagrant/aem_install_files/
+        creates: /home/vagrant/{{item.folder}}/crx-quickstart
+      become: false
+      with_items:
+        - { folder: aem-publish, runmode: "{{aem_publish_runmodes}}" }
+        - { folder: aem-author,  runmode: "{{aem_author_runmodes}}" }
+
+    - name: Copy license file to author and publish locations
+      command: cp license.properties ../{{item}}/
+      args:
+        chdir: /home/vagrant/aem_install_files/
+        creates: /home/vagrant/{{item}}/license.properties
+      become: false
+      with_items: [aem-publish, aem-author]
+
+
+    - name: Install systemctl entry for Author and Publish
+      copy: src="aem_install_files/resources/services/{{item}}.service" dest="/usr/lib/systemd/system/{{item}}.service"
+      become: true
+      with_items: [aem-publish, aem-author]
+
+    - name: Start the systemctl AEM deamon for author and publish
+      systemd: name="{{item}}" state=started enabled=yes daemon_reload=yes no_block=yes
+      become: true
+      async: 400
+      poll: 10
+      with_items: [aem-publish, aem-author]
+
+
+    - name: Copy dispatcher module to apache
+      tags: aem_dispatcher
+      copy: src="aem_install_files/{{dispatcher_module_name}}" dest="/etc/httpd/modules/mod_dispatcher.so"
+      become: true
+      notify:
+        - restart apache
+
+    # here, we copy 
+    - name: Configure Dispatcher
+      tags: aem_dispatcher
+      template: 
+        src: aem_install_files/resources/dispatcher-template/{{item.name}}
+        dest: /etc/httpd/{{item.rePath}}
+        mode: 777 # dev box, remember :)
+      become: yes
+      notify:
+        - restart apache
+      with_items:
+        - { name: 00-dispatcher.conf, rePath: conf.modules.d/00-dispatcher.conf }
+        - { name: dispatcher.conf,    rePath: conf.d/dispatcher.conf }
+        - { name: dispatcher.any,     rePath: conf/dispatcher.any    }
+
+    - name: Waiting for AEM author to bind to port
+      tags: aem_author
+      wait_for: port={{aem_author_port}}
+
+    - name: Waiting for AEM publish to bind to port
+      wait_for: port={{aem_publish_port}}
