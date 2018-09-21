@@ -1,2 +1,3 @@
 # Ignore all "files" in aem_install_files
 aem_install_files/*.*
+\.vagrant/

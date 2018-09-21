@@ -87,6 +87,17 @@ ANSIBLE_ARGS='--tags "aem_dispatcher"' vagrant provision
 Use `vagrant ssh` while on the root of this project directory.
 This allows you to SSH with the key vagrant generated when it setup the VM.
 
+## Logs
+[TODO: add support for synced logs]
+
+you can SSH into VM as mentioned above to see logs.
+
+| Instance   | Log Location in the VM                     |
+|------------|--------------------------------------------|
+| Author     | `/home/vagrant/aem-publish/crx_quickstart` |
+| Publish    | `/home/vagrant/aem-publish/crx_quickstart` |
+| Dispatcher | `/etc/httpd`                               |
+
 ## Options
 
 ### JVM/AEM parameters
