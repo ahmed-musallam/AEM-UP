@@ -1,6 +1,6 @@
-# :arrow_up: AEM-UP
+# :rocket: AEM-UP
 
-*Heavily modified from [AEM-Devbox] (https://github.com/ObjectiveTruth/AEM-Devbox)*
+*Heavily modified from [AEM-Devbox](https://github.com/ObjectiveTruth/AEM-Devbox)*
 
 AEM Author, Dispatcher and Publisher in one VM managed via `Vagrant` and provisioned via `Ansible`. *Name comes from `Vagrant up` command*
 
