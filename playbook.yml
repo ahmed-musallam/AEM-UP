@@ -3,8 +3,8 @@
 
   vars:
     # CONFIGURE THIS:
-    aem_jar_name: "cq-quickstart-6.4.0.jar" # The AEM JAR file name in /aem_install_files
-    dispatcher_module_name: "dispatcher-apache2.4-4.2.3.so"  # The dispatcher module file name in /aem_install_files
+    aem_jar_name: "cq-quickstart-6.4.0.jar" # The AEM JAR file name in /user-provided
+    dispatcher_module_name: "dispatcher-apache2.4-4.2.3.so"  # The dispatcher module file name in /user-provided
     
     # Do NOT configure below this line (unless you know what you're doing)
     # There are other places that use those same configs,
@@ -14,6 +14,9 @@
     aem_dispatcher_port: 4604
     aem_publish_runmodes: publish,samplecontent
     aem_author_runmodes: author,samplecontent
+    service_path: /usr/lib/systemd/system
+    author_folder: /home/vagrant/aem-author
+    publish_folder: /home/vagrant/aem-publish
   
   # Handlers
   handlers:
@@ -41,10 +44,20 @@
       poll: 0
       when: disable_selinux_result is changed
 
+    # https://go-repo.io/
+    - name: Install Go
+      shell: |
+        rpm --import https://mirror.go-repo.io/centos/RPM-GPG-KEY-GO-REPO
+        curl -s https://mirror.go-repo.io/centos/go-repo.repo | tee /etc/yum.repos.d/go-repo.repo
+        exit 0
+      args:
+        executable: /bin/bash
+      become: yes
+
     - name: Install dependencies such as java and httpd (apache)
       yum: name={{ item }} state=latest
       become: true
-      with_items: [nano, java, httpd]
+      with_items: [nano, java, httpd, golang, git]
 
     # Some OS's have smaller limit of number of concurrent open files.
     # AEM opens a lot of files, so we max that limit here
@@ -56,33 +69,32 @@
       wait_for_connection: connect_timeout=20 sleep=5 delay=5 timeout=300
       when: disable_selinux_result is changed
 
-
     - name: Unpack AEM JAR to Author and Publish directories
-      command: java -jar {{aem_jar_name}} -unpack -b "../{{item.folder}}" -quickstart.server.port {{aem_publish_port}} -r {{item.runmode}}
+      command: java -jar {{aem_jar_name}} -unpack -b "{{item.folder}}" -quickstart.server.port {{aem_publish_port}} -r {{item.runmode}}
       args:
-        chdir: /home/vagrant/aem_install_files/
+        chdir: /home/vagrant/user-provided/
         creates: /home/vagrant/{{item.folder}}/crx-quickstart
       become: false
       with_items:
-        - { folder: aem-publish, runmode: "{{aem_publish_runmodes}}" }
-        - { folder: aem-author,  runmode: "{{aem_author_runmodes}}" }
+        - { folder: "{{publish_folder}}", runmode: "{{aem_publish_runmodes}}" }
+        - { folder: "{{author_folder}}",  runmode: "{{aem_author_runmodes}}" }
 
     - name: Copy license file to author and publish locations
       command: cp license.properties ../{{item}}/
       args:
-        chdir: /home/vagrant/aem_install_files/
+        chdir: /home/vagrant/user-provided/
         creates: /home/vagrant/{{item}}/license.properties
       become: false
       with_items: [aem-publish, aem-author]
 
 
-    - name: Install systemctl entry for Author and Publish
-      copy: src="aem_install_files/resources/services/{{item}}.service" dest="/usr/lib/systemd/system/{{item}}.service"
+    - name: Install systemd service for Author and Publish
+      copy: src="services/{{item}}.service" dest="/usr/lib/systemd/system/{{item}}.service"
       become: true
-      with_items: [aem-publish, aem-author]
+      with_items: [aem-publish, aem-author, tailon]
 
-    - name: Start the systemctl AEM deamon for author and publish
-      systemd: name="{{item}}" state=started enabled=yes daemon_reload=yes no_block=yes
+    - name: Start the systemd AEM deamon for author and publish
+      systemd: name="{{item}}.service" state=started enabled=yes daemon_reload=yes no_block=yes
       become: true
       async: 400
       poll: 10
@@ -91,7 +103,7 @@
 
     - name: Copy dispatcher module to apache
       tags: aem_dispatcher
-      copy: src="aem_install_files/{{dispatcher_module_name}}" dest="/etc/httpd/modules/mod_dispatcher.so"
+      copy: src="user-provided/{{dispatcher_module_name}}" dest="/etc/httpd/modules/mod_dispatcher.so"
       become: true
       notify:
         - restart apache
@@ -100,7 +112,7 @@
     - name: Configure Dispatcher
       tags: aem_dispatcher
       template: 
-        src: aem_install_files/resources/dispatcher-template/{{item.name}}
+        src: dispatcher/{{item.name}}
         dest: /etc/httpd/{{item.rePath}}
         mode: 777 # dev box, remember :)
       become: yes
@@ -117,3 +129,16 @@
 
     - name: Waiting for AEM publish to bind to port
       wait_for: port={{aem_publish_port}}
+
+    - name: Install tailon
+      tags: tailon
+      copy: src="binaries/tailon/tailon" dest="/bin/tailon"
+      mode: 777
+      become: yes
+
+    - name: Start the systemd AEM deamon for tailon
+      tags: tailon
+      systemd: name="tailon.service" state=started enabled=yes daemon_reload=yes no_block=yes
+      become: true
+      async: 40
+      poll: 10

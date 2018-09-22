@@ -21,7 +21,7 @@ AEM Author, Dispatcher and Publisher in one VM managed via `Vagrant` and provisi
 
 1. Add AEM JAR, license and dispatcher module:
 	
-	copy your `cq-quickstart-<version>.jar`, `license.properties` and `dispatcher-apache2.4-<version>.so` to `aem_install_files` folder.
+	copy your `cq-quickstart-<version>.jar`, `license.properties` and `dispatcher-apache2.4-<version>.so` to `user-provided` folder.
 
   Folder structure should look something like this:
   
@@ -30,18 +30,18 @@ AEM Author, Dispatcher and Publisher in one VM managed via `Vagrant` and provisi
   ├── LICENSE
   ├── README.md
   ├── Vagrantfile
-  ├── aem_install_files
+  ├── user-provided
   │   ├── cq-quickstart-6.4.0.jar
   │   ├── dispatcher-apache2.4-4.2.3.so
-  │   ├── license.properties
-  │   └── resources
-  │       ├── dispatcher-template
-  │       │   ├── 00-dispatcher.conf
-  │       │   ├── dispatcher.any
-  │       │   └── dispatcher.conf
+  │   └── license.properties
+  ├── services
+  │   ├── aem-author.service
+  │   └── aem-publish.service
+  ├── dispatcher
+  │   ├── 00-dispatcher.conf
+  │   ├── dispatcher.any
+  │   └── dispatcher.conf
   │       └── services
-  │           ├── aem-author.service
-  │           └── aem-publish.service
   └── playbook.yml
   ```
 
@@ -62,9 +62,9 @@ AEM Author, Dispatcher and Publisher in one VM managed via `Vagrant` and provisi
 
 ### Editing dispatcher configs
   - Edit `dispatcher.any` at path:
-	`aem_install_files/resources/dispatcher-template/dispatcher.any`
+    `dispatcher/dispatcher.any`
   - Edit dispatcher `conf` at path:
-    `aem_install_files/resources/dispatcher-template/00-dispatcher.conf`
+    `dospatcher/00-dispatcher.conf`
 
 ### applying dispatcher changes
 
@@ -108,7 +108,7 @@ in `vagrantfile` change `vb.memory` and `vb.cpu`
 
 ### JVM/AEM parameters
   
-  You can set Java and AEM params in `Environment directive` in `/resources/services/aem-author.service` and `/resources/services/aem-publish.service`
+  You can set Java and AEM params in `Environment directive` in `services/aem-author.service` and `services/aem-publish.service`
 
 
 ### Ansible extra arguments

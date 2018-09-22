@@ -1,0 +1,8 @@
+[Unit]
+Description="Tailon Service"
+
+[Service]
+ExecStart=/root/go/bin/tailon /home/vagrant/aem-author/crx-quickstart/logs/error.log
+Type=simple
+PIDFile=/home/vagrant/aem-publish/crx-quickstart/conf/cq.pid
+RemainAfterExit=yes

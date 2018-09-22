@@ -1,0 +1,10 @@
+[Unit]
+Description="AEM Author"
+
+[Service]
+Environment="CQ_JVM_OPTS=-server -Xmx2560m -Djava.awt.headless=true" "CQ_PORT=4602" "CQ_RUNMODE=author,samplecontent"
+ExecStart=/bin/bash /home/vagrant/aem-author/crx-quickstart/bin/start
+ExecStop=/bin/bash /home/vagrant/aem-author/crx-quickstart/bin/stop
+Type=simple
+PIDFile=/home/vagrant/aem-author/crx-quickstart/conf/cq.pid
+RemainAfterExit=yes
