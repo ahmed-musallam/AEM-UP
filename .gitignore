@@ -3,3 +3,5 @@ user-provided/
 \.vagrant/
 
 binaries/\.DS_Store
+
+playbook\.retry
