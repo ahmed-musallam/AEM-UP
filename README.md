@@ -2,11 +2,13 @@
 
 *Inspired by [AEM-Devbox](https://github.com/ObjectiveTruth/AEM-Devbox)*
 
-AEM Author, Publisher and Dispatcher in one VM With a logging server\*. managed via `Vagrant` and provisioned via `Ansible`.  *Name comes from `Vagrant up` command*
+AEM Author, Publisher and Dispatcher in one VM With a logging server\*. managed via [`Vagrant`](https://www.vagrantup.com) and provisioned via [`Ansible`](https://www.ansible.com/).  *"AEM-UP" comes from `Vagrant up` command*
 
 > *This VM runs a [tailon](https://github.com/gvalkov/tailon) server to show you logs in browser! no SSH necessary!
 
-- Table of Contents
+TL;DR: 
+
+## Table of Contents
   * [Stack:](#stack)
   * [Requirements](#requirements)
   * [Setup](#setup)
