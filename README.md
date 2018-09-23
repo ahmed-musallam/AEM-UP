@@ -1,6 +1,6 @@
 # :rocket: AEM-UP
 
-***Heavily*** *modified from [AEM-Devbox](https://github.com/ObjectiveTruth/AEM-Devbox)*
+*Inspired by [AEM-Devbox](https://github.com/ObjectiveTruth/AEM-Devbox)*
 
 AEM Author, Publisher and Dispatcher in one VM With a logging server\*. managed via `Vagrant` and provisioned via `Ansible`.  *Name comes from `Vagrant up` command*
 
