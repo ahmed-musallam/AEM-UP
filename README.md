@@ -176,7 +176,9 @@ This allows you to SSH with the key vagrant generated when it setup the VM.
 
 Go to `localhost:4605` to see logs reported by [tailon](https://github.com/gvalkov/tailon)
 
-you can also SSH into VM as mentioned above to see logs.
+> Please note tailon has a bug with regards to showing the full path of the log in the web UI. I opened a [PR](https://github.com/gvalkov/tailon/pull/5) to fix it. It should still allow you se all the logs with no issues.
+
+You can also SSH into VM as mentioned above to see logs.
 
 | Instance   | Log Location in the VM                          |
 |------------|-------------------------------------------------|
