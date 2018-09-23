@@ -4,11 +4,10 @@
 
 AEM Author, Publisher and Dispatcher in one VM With a logging server\*. managed via `Vagrant` and provisioned via `Ansible`.  *Name comes from `Vagrant up` command*
 
-> *This VM runs a [tailon](https://github.com/gvalkov/tailon) server to show you logs in browser! no SSH necessary! 
-
+> *This VM runs a [tailon](https://github.com/gvalkov/tailon) server to show you logs in browser! no SSH necessary!
 
 - Table of Contents
-  * [Stack:](#stack-)
+  * [Stack:](#stack)
   * [Requirements](#requirements)
   * [Setup](#setup)
   * [Configuration](#configuration)
