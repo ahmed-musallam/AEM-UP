@@ -23,7 +23,7 @@ Vagrant.configure(2) do |config|
     
     # Disable default rsync folder and setup new one
     config.vm.synced_folder ".", "/vagrant", disabled: true
-    config.vm.synced_folder "./aem_install_files", "/home/vagrant/aem_install_files", disabled: false, type: "rsync", create: true
+    config.vm.synced_folder "./user-provided", "/home/vagrant/user-provided", disabled: false, type: "rsync", create: true
 
     # attempting to sync logs.. not working yet.. :(
     # config.vm.synced_folder "./instances", "/home/vagrant", type: "nfs", disabled: false
@@ -35,12 +35,14 @@ Vagrant.configure(2) do |config|
     config.vm.network "forwarded_port", guest: 4602, host: 4602
     config.vm.network "forwarded_port", guest: 4603, host: 4603
     config.vm.network "forwarded_port", guest: 80, host: 4604
+    config.vm.network "forwarded_port", guest: 8080, host: 4605
 
     # Run ansible playbook
     config.vm.provision "ansible" do |ansible|
         ansible.verbose = "v"
         ansible.playbook = "playbook.yml"
         ansible.compatibility_mode = "2.0"
+        ansible.become = true # run everything as root, dev box remember :)
         # see: https://gist.github.com/phantomwhale/9657134#gistcomment-1195013
         # basically if you want to pass extra params to ansible, for example, run aem_dispatcher taged tasks:
         # run this `ANSIBLE_ARGS='--tags "aem_dispatcher"' vagrant provision`

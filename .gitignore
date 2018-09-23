@@ -1,3 +1,7 @@
-# Ignore all "files" in aem_install_files
-aem_install_files/*.*
+# Ignore user-provided files
+user-provided/
 \.vagrant/
+
+binaries/\.DS_Store
+
+playbook\.retry

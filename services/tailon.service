@@ -1,0 +1,7 @@
+[Unit]
+Description="Tailon Service"
+
+[Service]
+ExecStart=/usr/bin/tailon "{{author_folder}}/crx-quickstart/logs/*.log" "{{publish_folder}}/crx-quickstart/logs/*.log" "/etc/httpd/logs/*.log"
+Type=simple
+RemainAfterExit=yes

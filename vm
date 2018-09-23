@@ -1,0 +1,85 @@
+#!/usr/bin/env bash
+
+# pretty print things witch color!
+pretty() {
+  # first arg is one of [info, warn, error]
+  case $1 in
+    "info")  COLOR="\e[1;34m"  ;; # blue
+    "warn")  COLOR="\e[1;33m"  ;; # yellow
+    "error") COLOR="\e[1;31m"  ;; # red
+    *)       COLOR="\e[1;34m"  ;; # blue
+  esac
+  # print second arg
+  printf "$COLOR[VM SCRIPT]:: $2 ::"
+  printf "\e[0m"
+  echo
+}
+
+# Switch over actions
+case $1 in
+  "up")
+    pretty "info" "Checking existing snapshots"
+    if [[ $(vagrant snapshot list) == *vanilla* ]]; then
+      pretty "info" "Vanilla snapshot found. Running [vagrant up]"
+      vagrant up
+    else
+      pretty "info" "Vanilla snapshot not found. Creating new VM"
+      vagrant up --no-provision
+      pretty "info" "Creating [vanilla] snapshot of the VM"
+      vagrant snapshot save vanilla
+      pretty "info" "Provisioning VM"
+      ANSIBLE_STDOUT_CALLBACK=debug
+      vagrant provision
+    fi
+    ;;
+  "destroy")
+    pretty "info" "Destroying VM"
+    vagrant destroy
+    ;;
+  "provision")
+    pretty "info" "Provisioning VM"
+    vagrant provision
+    ;;
+  "vanilla")
+    pretty "info" "Restoring vanilla snapshot [no provisioning]"
+    pretty "info" "After restore, run [vagrant provision] to provision VM"
+    vagrant snapshot restore vanilla --no-provision
+    eval $INSTALL_PACKGE
+    ;;
+  "recreate")
+    pretty "info" "Attempting to restore vanilla snapshot"
+    if [[ $(vagrant snapshot list) == *vanilla* ]]; then
+      pretty "info" "Vanilla snapshot exists, restoring and provisioning"
+      vagrant snapshot restore vanilla
+    else
+      pretty "info" "Vanilla snapshot not found. Creating new VM [./vm up]"
+      ./vm up
+    fi
+    ;;
+  "help")
+    echo "
+    A helper script to run usefull vagrant commands
+    
+    Usage: ./vm [action]
+
+    actions:
+      help........You're looking at it.
+      up..........Create VM, take vanilla snapshot* then provison.
+      destroy.....Runs: [vagrant destroy].
+      provision...Runs [vagrant provision]
+      vanilla.....Restores vanilla snapshot but does not provision it.
+      recreate....Restore vanilla snapshot and provision it
+                  If snapshot does not exist, run [./vm provision].
+                  
+      *Vanilla snapshot: This is a VM snapshot taken when [./vm up] is 
+                         first run and before provisioning. This means 
+                         that vanilla snapshot has no AEM or anything
+                         else installed. Hence, vanilla.
+
+      "
+    ;;
+  *)
+    pretty "error" "oops only allowed arguments are: [help, up, destroy, provision, vanilla, recreate]"
+    exit 1
+    ;;
+esac
