@@ -130,13 +130,20 @@
       tags: tailon
       copy: src="binaries/tailon/tailon" dest="/usr/bin/tailon"
     
+    - name: Install systemd service for Tailon
+      tags: tailon
+      template: 
+        src: services/tailon.service
+        dest: /usr/lib/systemd/system/tailon.service
+        mode: u=rwx,g=rwx,o=rwx # dev box, remember :)
+    
     - name: Changing perm of "/usr/bin/tailon", adding "+x"
       tags: tailon
       file: dest=/usr/bin/tailon mode=01777 # dev box, remember :)
 
     # for now, this service only starts tailon serever
-    # TODO - make service server stopable.
     - name: Start the systemd AEM deamon for tailon 4605
       tags: tailon
-      systemd: name="tailon.service" state=started enabled=yes daemon_reload=yes no_block=yes
+      daemon_reload: yes
+      systemd: name="tailon.service" state=restarted enabled=yes daemon_reload=yes no_block=yes
       async: 0
