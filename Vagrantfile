@@ -42,6 +42,7 @@ Vagrant.configure(2) do |config|
         ansible.verbose = "v"
         ansible.playbook = "playbook.yml"
         ansible.compatibility_mode = "2.0"
+        ansible.become = true # run everything as root, dev box remember :)
         # see: https://gist.github.com/phantomwhale/9657134#gistcomment-1195013
         # basically if you want to pass extra params to ansible, for example, run aem_dispatcher taged tasks:
         # run this `ANSIBLE_ARGS='--tags "aem_dispatcher"' vagrant provision`

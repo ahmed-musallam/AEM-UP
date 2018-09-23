@@ -96,7 +96,7 @@ you can SSH into VM as mentioned above to see logs.
 
 | Instance   | Log Location in the VM                     |
 |------------|--------------------------------------------|
-| Author     | `/home/vagrant/aem-publish/crx_quickstart` |
+| Author     | `/home/vagrant/aem-author/crx_quickstart` |
 | Publish    | `/home/vagrant/aem-publish/crx_quickstart` |
 | Dispatcher | `/etc/httpd`                               |
 

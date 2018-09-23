@@ -2,9 +2,9 @@
 Description="Adobe Experience Manager"
 
 [Service]
-Environment="CQ_JVM_OPTS=-server -Xmx2560m -Djava.awt.headless=true" "CQ_PORT=4603" "CQ_RUNMODE=publish,samplecontent"
-ExecStart=/bin/bash /home/vagrant/aem-publish/crx-quickstart/bin/start
-ExecStop=/bin/bash /home/vagrant/aem-publish/crx-quickstart/bin/stop
+Environment="CQ_JVM_OPTS=-server -Xmx2560m -Djava.awt.headless=true" "CQ_PORT={{aem_publish_port}}" "CQ_RUNMODE={{aem_publish_runmodes}}"
+ExecStart=/bin/bash {{publish_folder}}/crx-quickstart/bin/start
+ExecStop=/bin/bash {{publish_folder}}/crx-quickstart/bin/stop
 Type=simple
-PIDFile=/home/vagrant/aem-publish/crx-quickstart/conf/cq.pid
+PIDFile={{publish_folder}}/crx-quickstart/conf/cq.pid
 RemainAfterExit=yes

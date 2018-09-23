@@ -5,6 +5,8 @@
     # CONFIGURE THIS:
     aem_jar_name: "cq-quickstart-6.4.0.jar" # The AEM JAR file name in /user-provided
     dispatcher_module_name: "dispatcher-apache2.4-4.2.3.so"  # The dispatcher module file name in /user-provided
+    aem_publish_runmodes: publish,samplecontent
+    aem_author_runmodes: author,samplecontent
     
     # Do NOT configure below this line (unless you know what you're doing)
     # There are other places that use those same configs,
@@ -12,18 +14,19 @@
     aem_author_port: 4602
     aem_publish_port: 4603
     aem_dispatcher_port: 4604
-    aem_publish_runmodes: publish,samplecontent
-    aem_author_runmodes: author,samplecontent
     service_path: /usr/lib/systemd/system
+    user_provided_folder: /home/vagrant/user-provided
+
+    # Absolute paths to AEM folders on the VM
     author_folder: /home/vagrant/aem-author
     publish_folder: /home/vagrant/aem-publish
+    
   
   # Handlers
   handlers:
     # Restart apache, needed for when we make changes to apache files
     - name: restart apache
       service: name=httpd state=restarted
-      become: true
   # Ansible tasks
   tasks:
 
@@ -34,7 +37,6 @@
     # Note: this runs the first time you setup your VM, subsequesnt provesions do not run this task.
     - name: Disable SELinux
       selinux: state=disabled
-      become: true
       register: disable_selinux_result
     
     # Reboot ONLY if Disable SELinux task was changed (only first time)
@@ -44,58 +46,55 @@
       poll: 0
       when: disable_selinux_result is changed
 
+    - name: Wait for the reboot to complete if there was a change.
+      wait_for_connection: connect_timeout=20 sleep=5 delay=5 timeout=300
+      when: disable_selinux_result is changed
+
     # https://go-repo.io/
-    - name: Install Go
+    - name: Install Go (for tailon server)
       shell: |
         rpm --import https://mirror.go-repo.io/centos/RPM-GPG-KEY-GO-REPO
         curl -s https://mirror.go-repo.io/centos/go-repo.repo | tee /etc/yum.repos.d/go-repo.repo
         exit 0
       args:
         executable: /bin/bash
-      become: yes
+        warn: false # Ansible prints a warning about using yum, blah blah blah... not interested =)
 
-    - name: Install dependencies such as java and httpd (apache)
+    - name: Install dependencies [nano, java, httpd, golang, git]
       yum: name={{ item }} state=latest
-      become: true
       with_items: [nano, java, httpd, golang, git]
 
     # Some OS's have smaller limit of number of concurrent open files.
     # AEM opens a lot of files, so we max that limit here
-    - name: Set open file limit for vagrant users
-      pam_limits: domain=vagrant limit_type=hard limit_item=nofile value=64000
-      become: true
-
-    - name: Wait for the reboot to complete if there was a change.
-      wait_for_connection: connect_timeout=20 sleep=5 delay=5 timeout=300
-      when: disable_selinux_result is changed
+    - name: Set open file limit for all users
+      pam_limits: domain=* limit_type=hard limit_item=nofile value=64000
 
     - name: Unpack AEM JAR to Author and Publish directories
       command: java -jar {{aem_jar_name}} -unpack -b "{{item.folder}}" -quickstart.server.port {{aem_publish_port}} -r {{item.runmode}}
       args:
-        chdir: /home/vagrant/user-provided/
-        creates: /home/vagrant/{{item.folder}}/crx-quickstart
-      become: false
+        chdir: "{{user_provided_folder}}"
+        creates: "{{item.folder}}/crx-quickstart"
       with_items:
         - { folder: "{{publish_folder}}", runmode: "{{aem_publish_runmodes}}" }
         - { folder: "{{author_folder}}",  runmode: "{{aem_author_runmodes}}" }
 
     - name: Copy license file to author and publish locations
-      command: cp license.properties ../{{item}}/
+      command: cp {{user_provided_folder}}/license.properties {{item}}
       args:
-        chdir: /home/vagrant/user-provided/
-        creates: /home/vagrant/{{item}}/license.properties
-      become: false
-      with_items: [aem-publish, aem-author]
+        chdir: "{{user_provided_folder}}"
+        creates: "{{item}}/license.properties"
+      with_items: ["{{publish_folder}}", "{{author_folder}}"]
 
 
     - name: Install systemd service for Author and Publish
-      copy: src="services/{{item}}.service" dest="/usr/lib/systemd/system/{{item}}.service"
-      become: true
+      template: 
+        src: services/{{item}}.service
+        dest: /usr/lib/systemd/system/{{item}}.service
+        mode: u=rwx,g=rwx,o=rwx # dev box, remember :)
       with_items: [aem-publish, aem-author, tailon]
 
     - name: Start the systemd AEM deamon for author and publish
       systemd: name="{{item}}.service" state=started enabled=yes daemon_reload=yes no_block=yes
-      become: true
       async: 400
       poll: 10
       with_items: [aem-publish, aem-author]
@@ -104,7 +103,6 @@
     - name: Copy dispatcher module to apache
       tags: aem_dispatcher
       copy: src="user-provided/{{dispatcher_module_name}}" dest="/etc/httpd/modules/mod_dispatcher.so"
-      become: true
       notify:
         - restart apache
 
@@ -114,8 +112,7 @@
       template: 
         src: dispatcher/{{item.name}}
         dest: /etc/httpd/{{item.rePath}}
-        mode: 777 # dev box, remember :)
-      become: yes
+        # mode: u=rwx,g=rwx,o=rwx # dev box, remember :)
       notify:
         - restart apache
       with_items:
@@ -132,13 +129,15 @@
 
     - name: Install tailon
       tags: tailon
-      copy: src="binaries/tailon/tailon" dest="/bin/tailon"
-      mode: 777
-      become: yes
+      copy: src="binaries/tailon/tailon" dest="/usr/bin/tailon"
+    
+    - name: Changing perm of "/usr/bin/tailon", adding "+x"
+      tags: tailon
+      file: dest=/usr/bin/tailon mode=01777 # dev box, remember :)
 
-    - name: Start the systemd AEM deamon for tailon
+    # for now, this service only starts tailon serever
+    # TODO - make service server stopable.
+    - name: Start the systemd AEM deamon for tailon 4605
       tags: tailon
       systemd: name="tailon.service" state=started enabled=yes daemon_reload=yes no_block=yes
-      become: true
-      async: 40
-      poll: 10
+      async: 0
