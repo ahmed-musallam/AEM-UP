@@ -1,5 +1,6 @@
 # Ignore user-provided files
-user-provided/
+user-provided/*
+!user-provided/\.gitkeep
 \.vagrant/
 
 binaries/\.DS_Store
