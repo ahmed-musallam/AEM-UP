@@ -77,11 +77,11 @@ TL;DR:
 	│   ├── cq-quickstart-6.4.0.jar
 	│   ├── dispatcher-apache2.4-4.2.3.so
 	│   └── license.properties
-└── vm
+	└── vm
   ```
 
 2. **Tell Ansible where your file names**
-	
+
 	open `playbook.yml` and edit the variables `aem_jar_name` and `dispatcher_module_name`** (documentation in the file)
 
 3. **Run VM**
@@ -193,7 +193,3 @@ You can also SSH into VM as mentioned above to see logs.
 > *Must support bash
 
 run `./vm help` or look into the `vm` file, I added a LOT of documentation :).
-
-
-  
-  
