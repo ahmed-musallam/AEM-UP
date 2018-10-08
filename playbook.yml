@@ -4,7 +4,9 @@
   vars:
     # CONFIGURE THIS:
     aem_jar_name: "cq-quickstart-6.4.0.jar" # The AEM JAR file name in /user-provided
-    dispatcher_module_name: "dispatcher-apache2.4-4.2.3.so"  # The dispatcher module file name in /user-provided
+    # The dispatcher module file name in /user-provided.
+    # Make sure you have the uncompressed `.so` file in /user-provided (not the zipped `.gz` file)
+    dispatcher_module_name: "dispatcher-apache2.4-4.2.3.so"
     aem_publish_runmodes: publish,samplecontent
     aem_author_runmodes: author,samplecontent
 
