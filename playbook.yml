@@ -144,6 +144,5 @@
     # for now, this service only starts tailon serever
     - name: Start the systemd AEM deamon for tailon 4605
       tags: tailon
-      daemon_reload: yes
       systemd: name="tailon.service" state=restarted enabled=yes daemon_reload=yes no_block=yes
       async: 0
