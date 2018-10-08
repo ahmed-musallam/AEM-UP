@@ -62,8 +62,7 @@
         warn: false # Ansible prints a warning about using yum, blah blah blah... not interested =)
 
     - name: Install dependencies [nano, java, httpd, golang, git]
-      yum: name={{ item }} state=latest
-      with_items: [nano, java, httpd, golang, git]
+      yum: name="nano, java, httpd, golang, git" state=latest
 
     # Some OS's have smaller limit of number of concurrent open files.
     # AEM opens a lot of files, so we max that limit here
