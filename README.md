@@ -39,7 +39,7 @@ TL;DR:
 ## Requirements
 
 - `vagrant 2.1.5` or higher [Install Vagrant](https://www.vagrantup.com/docs/installation/)
-- `Ansible 2.6.4` or higher  [Install Ansible](http://docs.ansible.com/ansible/intro_installation.html)
+- `Ansible 2.7` or higher  [Install Ansible](http://docs.ansible.com/ansible/intro_installation.html)
 - AEM JAR and license.
 - Latest Dispatcher module*. 
 
